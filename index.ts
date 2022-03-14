@@ -52,7 +52,8 @@ app.post(`/register`, (req, res) => {
     //@ts-ignore
     const token = jwt.sign(
         { id: result.lastInsertRowid },
-        `${process.env.SECRET}`
+        `${process.env.SECRET}`,
+        { expiresIn: '5m' }
     );
 
     res.send({ userToSend, token });
@@ -69,7 +70,9 @@ app.post('/login', (req, res) => {
         const transactions = getTransactionsByUserId(user.id);
         user.transactions = transactions;
         //@ts-ignore
-        const token = jwt.sign({ id: user.id }, `${process.env.SECRET}`);
+        const token = jwt.sign({ id: user.id }, `${process.env.SECRET}`, {
+            expiresIn: '5m',
+        });
         isPassMatch
             ? res.send({ user, token })
             : res.status(404).send({ error: `Wrong email/assword` });
@@ -83,13 +86,12 @@ app.post('/banking-info', (req, res) => {
     try {
         const decodedData = jwt.verify(token, `${process.env.SECRET}`);
         //@ts-ignore
-        const user = getUserByX('id',decodedData.id)
-        user.transactions = getTransactionsByUserId(user.id)
-        res.send(user) 
+        const user = getUserByX('id', decodedData.id);
+        user.transactions = getTransactionsByUserId(user.id);
+        res.send(user);
     } catch (error) {
-        res.send(error)
+        res.send(error);
     }
-    
 });
 
 app.listen(3009, () => {
