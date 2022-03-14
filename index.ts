@@ -84,8 +84,8 @@ app.post('/banking-info', (req, res) => {
         const decodedData = jwt.verify(token, `${process.env.SECRET}`);
         //@ts-ignore
         const user = getUserByX('id',decodedData.id)
-        user.transactions= getTransactionsByUserId(user.id)
-        res.send(user)
+        user.transactions = getTransactionsByUserId(user.id)
+        res.send(user) 
     } catch (error) {
         res.send(error)
     }
