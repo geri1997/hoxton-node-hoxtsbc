@@ -20,10 +20,10 @@ app.use(express.json());
 
 app.post(`/register`, (req, res) => {
     // try {
-    const { name, email, password } = req.body;
+    const { fullName, email, password } = req.body;
     let amount = +(Math.random() * 1000).toFixed(2);
     const hash = bcrypt.hashSync(password, saltRounds);
-    const result = createUser(name, email, hash, amount);
+    const result = createUser(fullName, email, hash, amount);
     createTransaction(
         result.lastInsertRowid,
         +(Math.random() * 100).toFixed(2),
@@ -53,7 +53,7 @@ app.post(`/register`, (req, res) => {
     const token = jwt.sign(
         { id: result.lastInsertRowid },
         `${process.env.SECRET}`,
-        { expiresIn: '5m' }
+        { expiresIn: '5h' }
     );
 
     res.send({ userToSend, token });
@@ -71,24 +71,25 @@ app.post('/login', (req, res) => {
         user.transactions = transactions;
         //@ts-ignore
         const token = jwt.sign({ id: user.id }, `${process.env.SECRET}`, {
-            expiresIn: '5m',
+            expiresIn: '5h',
         });
         isPassMatch
-            ? res.send({ user, token })
+            ? res.send({ data: user, token })
             : res.status(404).send({ error: `Wrong email/assword` });
     } catch (error) {
         res.status(400).send({ error: `Wrong email/assword` });
     }
 });
 
-app.post('/banking-info', (req, res) => {
-    const { token } = req.body;
+app.get('/banking-info', (req, res) => {
+    const { authorization } = req.headers;
     try {
-        const decodedData = jwt.verify(token, `${process.env.SECRET}`);
+        //@ts-ignore
+        const decodedData = jwt.verify(authorization, `${process.env.SECRET}`);
         //@ts-ignore
         const user = getUserByX('id', decodedData.id);
         user.transactions = getTransactionsByUserId(user.id);
-        res.send(user);
+        res.send({ data: user });
     } catch (error) {
         res.send(error);
     }
